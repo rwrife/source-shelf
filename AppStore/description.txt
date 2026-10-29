@@ -1,0 +1,3 @@
+Source Shelf is a planned offline source-and-quote cabinet for reading research on phone, tablet, and Windows. Its planned workflow lets you enter book, article, document, and interview metadata; save exact page or section locators with quote cards and personal notes; organize sources by tags and collections; and export portable JSON and citation drafts for review. Your notes stay on your device. No account or cloud sync is required.
+
+This repository is under development. These features describe intended behavior, not a currently released app. Citation output will require human proofreading before publication.
