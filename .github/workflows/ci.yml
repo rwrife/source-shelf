@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - run: git diff --exit-code
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test --coverage
+
+  android-debug:
+    runs-on: ubuntu-latest
+    container:
+      image: gmeligio/flutter-android:3.47.7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Android debug APK
+        run: |
+          export PATH="/home/flutter/sdks/flutter/bin:/home/flutter/sdks/flutter/bin/cache/dart-sdk/bin:$PATH"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          flutter pub get --enforce-lockfile
+          flutter build apk --debug
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: 'stable'
+          cache: true
+      - run: flutter config --enable-windows-desktop
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter test
+      - run: flutter build windows --debug
