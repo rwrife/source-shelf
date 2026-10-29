@@ -1,7 +1,7 @@
 # Source Shelf — Plan
 
 ## Status
-Documentation scaffold and generated icon only. No application project, CI, release or runtime tests yet. ASC bundle registration blocked by `FORBIDDEN_ERROR.PLA_NOT_ACCEPTED` until account owner accepts Apple Program License Agreement; bundle ID `com.infinityball.sourceshelf` remains unregistered.
+Flutter 3.47.7 skeleton generated with Android/iOS/Windows targets and adaptive empty state; source capture, storage, exports, release and icon wiring remain pending. ASC bundle registration blocked by `FORBIDDEN_ERROR.PLA_NOT_ACCEPTED` until account owner accepts Apple Program License Agreement; bundle ID `com.infinityball.sourceshelf` remains unregistered.
 
 ## Product slice
 Capture source metadata (book/article/chapter/web document/interview), add quote cards with exact page/section locator and user commentary, search/tag collections, and export deterministic citation snippets and portable JSON/BibTeX/Markdown. Metadata is user-entered; never claim DOI/ISBN verified by a service. On import, reject malformed data without mutating existing library. For interview citations, require user-entered consent context; avoid publishing private quotes by default.
