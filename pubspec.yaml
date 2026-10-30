@@ -10,6 +10,9 @@ dependencies:
   fluent_ui: ^4.17.0
   flutter:
     sdk: flutter
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  sqlite3: ^3.8.0
 
 dev_dependencies:
   flutter_test:
