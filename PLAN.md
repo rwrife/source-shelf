@@ -15,8 +15,8 @@ Choose strategy A, platform-native adaptive: a thin `AdaptiveScaffold`, `Adaptiv
 Source(id, type, title, ordered creators, publication fields, identifiers); Excerpt(id, sourceId, locator, quote, note, createdAt); Collection and tag join records. Versioned JSON export/import with validation and atomic replacement, optional `.bib` and Markdown exports. Local-only; no automatic sync, tracking, ads or network permission. File picker only upon explicit import/export. Backup files contain private notes; disclose before sharing. Format engine must mark unsupported/missing fields visibly, never invent publisher, page or date. Tests use style-manual fixtures and treat citation output as draft for human proofreading.
 
 ## Milestones (issues in dependency order)
-1. Flutter skeleton, platform targets, identifiers, CI compile/test gates.
-2. Source/excerpt domain model, local persistence, validation and migration tests.
+- [x] #1 Flutter skeleton, platform targets, identifiers, CI compile/test gates.
+- [ ] #2 Source/excerpt domain model, local persistence, validation and migration tests.
 3. Adaptive source catalog, excerpt capture and search with platform goldens.
 4. Deterministic citation formatter and fixtures (APA 7 and BibTeX first; Chicago/MLA later).
 5. Full JSON import/export, Markdown/BibTeX export and privacy controls.
