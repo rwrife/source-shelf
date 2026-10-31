@@ -31,12 +31,14 @@ CitationDraft apaReference(Source source) {
     ]);
   }
   final creator = _authors(source.creators);
-  if (creator.isEmpty)
+  if (creator.isEmpty) {
     warnings.add('Missing creator; supply author or organization.');
-  if (source.year == null)
+  }
+  if (source.year == null) {
     warnings.add(
       'Missing publication date; year-only format may be incomplete.',
     );
+  }
   final container = _present(source.container);
   final publisher = _present(source.publisher);
   final identifier = _present(source.identifier);
@@ -137,8 +139,12 @@ CitationDraft bibtex(Source source) {
     SourceType.interview => 'misc',
   };
   final key = source.id.replaceAll(RegExp(r'[^A-Za-z0-9:_-]'), '_');
-  if (source.creators.isEmpty) warnings.add('Missing author.');
-  if (source.year == null) warnings.add('Missing year.');
+  if (source.creators.isEmpty) {
+    warnings.add('Missing author.');
+  }
+  if (source.year == null) {
+    warnings.add('Missing year.');
+  }
   if ((source.type == SourceType.article ||
           source.type == SourceType.chapter) &&
       _present(source.container).isEmpty) {
@@ -148,10 +154,12 @@ CitationDraft bibtex(Source source) {
       _present(source.publisher).isEmpty) {
     warnings.add('Missing publisher.');
   }
-  if (source.type == SourceType.article)
+  if (source.type == SourceType.article) {
     warnings.add('Volume, issue and pages not modeled.');
-  if (source.type == SourceType.chapter)
+  }
+  if (source.type == SourceType.chapter) {
     warnings.add('Editors and pages not modeled.');
+  }
   final fields = <String, String>{
     if (source.creators.isNotEmpty)
       'author': source.creators.map((c) => c.trim()).join(' and '),
