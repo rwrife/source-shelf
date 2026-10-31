@@ -82,12 +82,11 @@ void main() {
       createdAt: '2026-10-31',
     );
     expect(apaQuote(src, quote).text, '(Smith, J., 2020, § 3.2, p. 44)');
-    final other = source(SourceType.web);
-    other = Source(
+    final other = Source(
       id: 'other',
-      type: other.type,
-      title: other.title,
-      creators: other.creators,
+      type: SourceType.web,
+      title: 'Other page',
+      creators: const ['Smith, J.'],
     );
     expect(apaQuote(other, quote).text, isNull);
   });
