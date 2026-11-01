@@ -16,9 +16,9 @@ Source(id, type, title, ordered creators, publication fields, identifiers); Exce
 
 ## Milestones (issues in dependency order)
 - [x] #1 Flutter skeleton, platform targets, identifiers, CI compile/test gates.
-- [ ] #2 Source/excerpt domain model, local persistence, validation and migration tests.
-3. Adaptive source catalog, excerpt capture and search with platform goldens.
-4. Deterministic citation formatter and fixtures (APA 7 and BibTeX first; Chicago/MLA later).
+- [x] #2 Source/excerpt domain model, local persistence, validation and migration tests.
+- [x] #3 Adaptive source catalog, excerpt capture, search and widget checks at phone/tablet/desktop widths.
+- [x] #4 Deterministic APA 7 and BibTeX citation drafts and fixtures; Chicago/MLA later.
 5. Full JSON import/export, Markdown/BibTeX export and privacy controls.
 6. Icon integration, store listing accuracy and accessibility/input audit.
 7. Release workflow `v*`/manual dispatch on `windows-latest`: zipped `flutter build windows --release` attached to GitHub release; Android build continues in Linux Docker CI. TestFlight/Play opt-in later, using ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, ASC_TEAM_ID (names only). Never log secrets. Record MSIX mapping from `com.infinityball.sourceshelf` when packaging requires transformed identity.

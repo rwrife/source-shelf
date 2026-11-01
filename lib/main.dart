@@ -4,18 +4,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/widgets.dart';
 
+import 'catalog.dart';
+import 'library.dart';
+
 void main() => runApp(const SourceShelfApp());
 
 /// Platform override is for deterministic widget tests; production uses host.
 class SourceShelfApp extends StatelessWidget {
-  const SourceShelfApp({super.key, this.platform});
+  const SourceShelfApp({super.key, this.platform, this.library});
 
   final TargetPlatform? platform;
+  final SourceLibrary? library;
 
   @override
   Widget build(BuildContext context) {
     final target = platform ?? defaultTargetPlatform;
-    final home = AdaptiveScaffold(platform: target);
+    final home = AdaptiveScaffold(platform: target, library: library);
     if (target == TargetPlatform.iOS) {
       return cupertino.CupertinoApp(title: 'Source Shelf', home: home);
     }
@@ -31,25 +35,20 @@ class SourceShelfApp extends StatelessWidget {
 }
 
 class AdaptiveScaffold extends StatelessWidget {
-  const AdaptiveScaffold({super.key, required this.platform});
+  const AdaptiveScaffold({super.key, required this.platform, this.library});
 
   final TargetPlatform platform;
+  final SourceLibrary? library;
 
   @override
   Widget build(BuildContext context) {
-    // ponytail: skeleton only; issue #3 adds real catalog, search and capture.
-    final empty = Center(
-      child: Semantics(
-        label: 'No sources yet',
-        child: Text('No sources yet. Your research stays on this device.'),
-      ),
-    );
+    final body = Catalog(platform: platform, library: library);
     if (platform == TargetPlatform.iOS) {
       return cupertino.CupertinoPageScaffold(
         navigationBar: const cupertino.CupertinoNavigationBar(
           middle: Text('Source Shelf'),
         ),
-        child: SafeArea(child: empty),
+        child: SafeArea(child: body),
       );
     }
     if (platform == TargetPlatform.windows) {
@@ -61,7 +60,7 @@ class AdaptiveScaffold extends StatelessWidget {
             fluent.PaneItem(
               icon: const fluent.Icon(fluent.FluentIcons.library),
               title: const Text('Sources'),
-              body: empty,
+              body: body,
             ),
           ],
           selected: 0,
@@ -85,10 +84,10 @@ class AdaptiveScaffold extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Expanded(child: empty),
+                  Expanded(child: body),
                 ],
               )
-            : empty,
+            : body,
       ),
     );
   }
