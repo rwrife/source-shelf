@@ -5,6 +5,14 @@ import 'package:flutter/widgets.dart' show Size;
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:source_shelf/main.dart';
+import 'package:source_shelf/library.dart';
+import 'package:source_shelf/catalog.dart';
+import 'package:flutter/widgets.dart' show EditableText;
+
+extension on Finder {
+  Finder findChildTextField() =>
+      find.descendant(of: this, matching: find.byType(EditableText));
+}
 
 void main() {
   for (final platform in [
@@ -22,7 +30,9 @@ void main() {
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
-        await tester.pumpWidget(SourceShelfApp(platform: platform));
+        await tester.pumpWidget(
+          SourceShelfApp(platform: platform, library: SourceLibrary.memory()),
+        );
         await tester.pumpAndSettle();
         expect(
           find.text('No sources yet. Your research stays on this device.'),
@@ -45,6 +55,72 @@ void main() {
         }
       });
     }
+  }
+
+  for (final platform in [
+    TargetPlatform.iOS,
+    TargetPlatform.android,
+    TargetPlatform.windows,
+  ]) {
+    testWidgets('$platform create source, capture excerpt, filter and edit', (
+      tester,
+    ) async {
+      final library = SourceLibrary.memory();
+      addTearDown(library.dispose);
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        SourceShelfApp(platform: platform, library: library),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New source'));
+      await tester.pumpAndSettle();
+      expect(find.text('New source'), findsWidgets);
+      expect(find.byType(PlatformField), findsWidgets);
+      await tester.enterText(
+        find.byType(PlatformField).at(1).findChildTextField(),
+        'Evidence Atlas',
+      );
+      await tester.enterText(
+        find.byType(PlatformField).at(2).findChildTextField(),
+        'Ada; Bea',
+      );
+      await tester.ensureVisible(find.text('Save source'));
+      await tester.tap(find.text('Save source'));
+      await tester.pumpAndSettle();
+      expect(library.sources().single.creators, ['Ada', 'Bea']);
+      await tester.tap(find.textContaining('Evidence Atlas').first);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Capture excerpt'));
+      await tester.tap(find.text('Capture excerpt'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(PlatformField).at(0).findChildTextField(),
+        'p. 12',
+      );
+      await tester.enterText(
+        find.byType(PlatformField).at(1).findChildTextField(),
+        'Exact quote',
+      );
+      await tester.ensureVisible(find.text('Save excerpt'));
+      await tester.tap(find.text('Save excerpt'));
+      await tester.pumpAndSettle();
+      expect(
+        library.excerpts(library.sources().single.id).single.locator,
+        'p. 12',
+      );
+      expect(find.text('Exact quote'), findsOneWidget);
+      await tester.tap(find.text('Back to sources'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byType(PlatformField).first.findChildTextField(),
+        'Missing',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('No matching sources.'), findsOneWidget);
+    });
   }
 
   testWidgets('adaptive controls use platform-specific widgets', (

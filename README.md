@@ -4,7 +4,7 @@
 
 Source Shelf is a planned local-first, multi-platform research workspace for independent researchers, students, writers, and journalists. Goal: store books, articles, reports, primary documents, and interviews on your device, capture exact page citations and excerpt notes, then export citation-ready BibTeX/JSON and formatted snippets without accounts or trackers.
 
-Flutter 3.47.7 project generated for Windows desktop, Android phones/tablets, and iPhones/iPads. Current app is an adaptive empty state only; source capture, persistence, citation drafts, exports, icon wiring, and release packaging remain planned.
+Flutter 3.47.7 app targets Windows desktop, Android phones/tablets, and iPhones/iPads. Source/excerpt capture, SQLite storage, collections, tags, title-prefix search and APA 7/BibTeX citation drafts are implemented. Backup/export UI, icon wiring and release packaging remain planned.
 
 ---
 
@@ -99,7 +99,7 @@ The developer account Program License Agreement (PLA) must be accepted by the ac
 
 ## Development Quickstart
 
-Pin Flutter 3.47.7 (Dart 3.13.5). Current screen is an empty-state skeleton; no research records can be saved yet. Windows identity `cominfinityball.sourceshelf` applies to future MSIX packaging, not current portable runner. iOS compilation requires macOS/Xcode and is not gated yet.
+Pin Flutter 3.47.7 (Dart 3.13.5). Local records can be created, edited and searched by title prefix; collection filters and excerpt capture are available. No backup/export screen yet. Windows identity `cominfinityball.sourceshelf` applies to future MSIX packaging, not current portable runner. iOS compilation requires macOS/Xcode and is not gated yet.
 
 ```bash
 # Verify Flutter toolchain (3.47.7) and lockfile
