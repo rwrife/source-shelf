@@ -112,6 +112,7 @@ void main() {
         'p. 12',
       );
       expect(find.text('Exact quote'), findsOneWidget);
+      expect(find.text('Copy APA draft'), findsOneWidget);
       await tester.tap(find.text('Back to sources'));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -122,6 +123,23 @@ void main() {
       expect(find.text('No matching sources.'), findsOneWidget);
     });
   }
+
+  testWidgets('export requires explicit privacy confirmation before picker', (
+    tester,
+  ) async {
+    final library = SourceLibrary.memory();
+    addTearDown(library.dispose);
+    await tester.pumpWidget(
+      SourceShelfApp(platform: TargetPlatform.android, library: library),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export md'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('private research notes'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('private research notes'), findsNothing);
+  });
 
   testWidgets('adaptive controls use platform-specific widgets', (
     tester,
