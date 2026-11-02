@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:file_selector/file_selector.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/cupertino.dart' as cupertino;
 import 'package:flutter/material.dart' as material;
@@ -11,8 +11,6 @@ import 'backup.dart';
 import 'citations.dart';
 import 'library.dart';
 
-const _jsonFile = XTypeGroup(label: 'Source Shelf JSON', extensions: ['json']);
-const _textFile = XTypeGroup(label: 'Text export', extensions: ['md', 'bib']);
 // Backups and quote exports contain private research; never share implicitly.
 const _exportWarning =
     'Files and clipboard text can contain private research notes and verbatim quotes. Review before sharing.';
@@ -365,16 +363,12 @@ class _CatalogState extends State<Catalog> {
         'bib' => exportBibtex(library!),
         _ => throw ArgumentError.value(kind),
       };
-      final destination = await getSaveLocation(
-        suggestedName: 'source-shelf.$kind',
-        acceptedTypeGroups: [kind == 'json' ? _jsonFile : _textFile],
-      );
-      if (destination == null) return;
-      final file = XFile.fromData(
-        utf8.encode(content),
+      await FilePicker.saveFile(
+        dialogTitle: 'Save Source Shelf export',
+        fileName: 'source-shelf.$kind',
         mimeType: kind == 'json' ? 'application/json' : 'text/plain',
+        bytes: utf8.encode(content),
       );
-      await file.saveTo(destination.path);
       if (mounted) setState(() => error = null);
     } catch (failure) {
       if (mounted) setState(() => error = 'Export failed: $failure');
@@ -383,9 +377,13 @@ class _CatalogState extends State<Catalog> {
 
   Future<void> importFile() async {
     try {
-      final file = await openFile(acceptedTypeGroups: [_jsonFile]);
+      final file = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
       if (file == null || !mounted) return;
-      final contents = await file.readAsString();
+      final contents = utf8.decode(await file.readAsBytes());
+      if (!mounted) return;
       // Preflight before offering destructive replacement.
       final preview = SourceLibrary.memory();
       try {
