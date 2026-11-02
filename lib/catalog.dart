@@ -1,9 +1,21 @@
+import 'dart:convert';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/cupertino.dart' as cupertino;
 import 'package:flutter/material.dart' as material;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import 'backup.dart';
+import 'citations.dart';
 import 'library.dart';
+
+const _jsonFile = XTypeGroup(label: 'Source Shelf JSON', extensions: ['json']);
+const _textFile = XTypeGroup(label: 'Text export', extensions: ['md', 'bib']);
+// Backups and quote exports contain private research; never share implicitly.
+const _exportWarning =
+    'Files and clipboard text can contain private research notes and verbatim quotes. Review before sharing.';
 
 /// UI stays local: no metadata lookup, network request, or generated locator.
 class Catalog extends StatefulWidget {
@@ -324,9 +336,122 @@ class _CatalogState extends State<Catalog> {
     if (added == true && mounted) setState(() {});
   }
 
+  Future<void> saveExport(String kind) async {
+    final ok = await showDialogForPlatform<bool>(
+      context,
+      widget.platform,
+      (close) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(_exportWarning),
+          PlatformButton(
+            platform: widget.platform,
+            label: 'Cancel',
+            onPressed: () => close(false),
+          ),
+          PlatformButton(
+            platform: widget.platform,
+            label: 'Continue',
+            onPressed: () => close(true),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      final content = switch (kind) {
+        'json' => exportBackup(library!),
+        'md' => exportMarkdown(library!),
+        'bib' => exportBibtex(library!),
+        _ => throw ArgumentError.value(kind),
+      };
+      final destination = await getSaveLocation(
+        suggestedName: 'source-shelf.$kind',
+        acceptedTypeGroups: [kind == 'json' ? _jsonFile : _textFile],
+      );
+      if (destination == null) return;
+      final file = XFile.fromData(
+        utf8.encode(content),
+        mimeType: kind == 'json' ? 'application/json' : 'text/plain',
+      );
+      await file.saveTo(destination.path);
+      if (mounted) setState(() => error = null);
+    } catch (failure) {
+      if (mounted) setState(() => error = 'Export failed: $failure');
+    }
+  }
+
+  Future<void> importFile() async {
+    try {
+      final file = await openFile(acceptedTypeGroups: [_jsonFile]);
+      if (file == null || !mounted) return;
+      final contents = await file.readAsString();
+      // Preflight before offering destructive replacement.
+      final preview = SourceLibrary.memory();
+      try {
+        importBackup(preview, contents, replace: true);
+      } finally {
+        preview.dispose();
+      }
+      if (!mounted) return;
+      final replace = await showDialogForPlatform<bool>(
+        context,
+        widget.platform,
+        (close) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Import backup? Merge rejects ID/name collisions. Replace deletes current library after validation. Keep a backup first.',
+            ),
+            PlatformButton(
+              platform: widget.platform,
+              label: 'Cancel',
+              onPressed: () => close(),
+            ),
+            PlatformButton(
+              platform: widget.platform,
+              label: 'Merge',
+              onPressed: () => close(false),
+            ),
+            PlatformButton(
+              platform: widget.platform,
+              label: 'Replace library',
+              onPressed: () => close(true),
+            ),
+          ],
+        ),
+      );
+      if (replace == null || !mounted) return;
+      importBackup(library!, contents, replace: replace);
+      setState(() {
+        selected = null;
+        collectionId = null;
+        error = null;
+      });
+    } catch (failure) {
+      if (mounted) {
+        setState(() => error = 'Import failed; library unchanged: $failure');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (error != null) return Center(child: Text(error!));
+    if (error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(error!),
+            PlatformButton(
+              platform: widget.platform,
+              label: 'Dismiss',
+              onPressed: () => setState(() => error = null),
+            ),
+          ],
+        ),
+      );
+    }
     if (library == null) {
       return const Center(child: Text('Opening local library…'));
     }
@@ -372,6 +497,17 @@ class _CatalogState extends State<Catalog> {
                     label: 'New source',
                     onPressed: () => editSource(),
                   ),
+                  PlatformButton(
+                    platform: widget.platform,
+                    label: 'Import JSON',
+                    onPressed: importFile,
+                  ),
+                  for (final kind in ['json', 'md', 'bib'])
+                    PlatformButton(
+                      platform: widget.platform,
+                      label: 'Export $kind',
+                      onPressed: () => saveExport(kind),
+                    ),
                 ],
               ),
             ],
@@ -443,6 +579,18 @@ class _CatalogState extends State<Catalog> {
       if (source.publisher != null) Text('Publisher: ${source.publisher}'),
       if (source.identifier != null) Text('Identifier: ${source.identifier}'),
       Text('Tags: ${library!.tags(source.id).join(', ')}'),
+      const Text('Citation draft — proofread before use.'),
+      Text(apaReference(source).text ?? 'Citation unavailable'),
+      for (final warning in apaReference(source).warnings) Text(warning),
+      PlatformButton(
+        platform: widget.platform,
+        label: 'Copy APA draft',
+        onPressed: apaReference(source).text == null
+            ? null
+            : () => Clipboard.setData(
+                ClipboardData(text: apaReference(source).text!),
+              ),
+      ),
       Wrap(
         spacing: 8,
         children: [
