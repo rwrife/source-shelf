@@ -1,13 +1,11 @@
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/cupertino.dart' as cupertino;
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart' show Size;
+import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:source_shelf/main.dart';
 import 'package:source_shelf/library.dart';
 import 'package:source_shelf/catalog.dart';
-import 'package:flutter/widgets.dart' show EditableText;
 
 extension on Finder {
   Finder findChildTextField() =>
@@ -139,6 +137,40 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(find.textContaining('private research notes'), findsNothing);
+  });
+
+  testWidgets('large text keeps essential actions usable with keyboard focus', (
+    tester,
+  ) async {
+    for (final platform in [
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.windows,
+    ]) {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      tester.binding.platformDispatcher.textScaleFactorTestValue = 2;
+      await tester.pumpWidget(
+        SourceShelfApp(platform: platform, library: SourceLibrary.memory()),
+      );
+      expect(
+        MediaQuery.textScalerOf(tester.element(find.byType(Catalog))),
+        isA<TextScaler>().having((value) => value.scale(10), 'scaled 10px', 20),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('New source'), findsOneWidget);
+      expect(find.text('Import JSON'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('New source'));
+      await tester.tap(find.text('New source'));
+      await tester.pumpAndSettle();
+      expect(find.text('Save source'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    }
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+    tester.binding.platformDispatcher.clearTextScaleFactorTestValue();
   });
 
   testWidgets('adaptive controls use platform-specific widgets', (
