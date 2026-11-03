@@ -4,7 +4,7 @@
 
 Source Shelf is a planned local-first, multi-platform research workspace for independent researchers, students, writers, and journalists. Goal: store books, articles, reports, primary documents, and interviews on your device, capture exact page citations and excerpt notes, then export citation-ready BibTeX/JSON and formatted snippets without accounts or trackers.
 
-Flutter 3.47.7 app targets Windows desktop, Android phones/tablets, and iPhones/iPads. Source/excerpt capture, SQLite storage, collections, tags, title-prefix search, APA 7/BibTeX citation drafts, and local backup/export are implemented. Drafts require human proofreading. Icon wiring and release packaging remain planned.
+Flutter 3.47.7 app targets Windows desktop, Android phones/tablets, and iPhones/iPads. Source/excerpt capture, SQLite storage, collections, tags, title-prefix search, APA 7/BibTeX citation drafts, and local backup/export are implemented. Drafts require human proofreading. Generated icon is wired into Windows, Android, and iOS/iPadOS targets; visual and native accessibility audits remain pending. Windows portable release packaging remains planned.
 
 ---
 
