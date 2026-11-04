@@ -702,23 +702,29 @@ class PlatformField extends StatelessWidget {
     if (platform == TargetPlatform.windows) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        child: fluent.TextBox(
-          controller: controller,
-          placeholder: label,
-          onChanged: onChanged,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
+        child: Semantics(
+          label: label,
+          child: fluent.TextBox(
+            controller: controller,
+            placeholder: label,
+            onChanged: onChanged,
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+          ),
         ),
       );
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: material.TextField(
-        controller: controller,
-        decoration: material.InputDecoration(labelText: label),
-        onChanged: onChanged,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
+      child: Semantics(
+        label: label,
+        child: material.TextField(
+          controller: controller,
+          decoration: material.InputDecoration(labelText: label),
+          onChanged: onChanged,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+        ),
       ),
     );
   }

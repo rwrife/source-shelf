@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/cupertino.dart' as cupertino;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_test/flutter_test.dart';
@@ -171,6 +172,51 @@ void main() {
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
     tester.binding.platformDispatcher.clearTextScaleFactorTestValue();
+  });
+
+  testWidgets('keyboard search and tab focus on each platform', (tester) async {
+    for (final platform in [
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.windows,
+    ]) {
+      final library = SourceLibrary.memory();
+      addTearDown(library.dispose);
+      await tester.pumpWidget(
+        SourceShelfApp(platform: platform, library: library),
+      );
+      await tester.pumpAndSettle();
+      final semantics = tester.ensureSemantics();
+      final searchField = find.byType(PlatformField).first.findChildTextField();
+      expect(searchField, findsOneWidget);
+      expect(
+        tester
+            .widget<Semantics>(
+              find
+                  .descendant(
+                    of: find.byType(PlatformField).first,
+                    matching: find.byType(Semantics),
+                  )
+                  .first,
+            )
+            .properties
+            .label,
+        'Search source titles',
+      );
+      semantics.dispose();
+      await tester.tap(searchField);
+      await tester.pumpAndSettle();
+      await tester.enterText(searchField, 'Missing');
+      await tester.pumpAndSettle();
+      expect(find.text('No matching sources.'), findsOneWidget);
+      final searchFocus = FocusManager.instance.primaryFocus;
+      expect(searchFocus, isNotNull);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(FocusManager.instance.primaryFocus, isNot(searchFocus));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 
   testWidgets('adaptive controls use platform-specific widgets', (
