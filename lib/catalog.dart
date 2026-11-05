@@ -437,16 +437,19 @@ class _CatalogState extends State<Catalog> {
   Widget build(BuildContext context) {
     if (error != null) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(error!),
-            PlatformButton(
-              platform: widget.platform,
-              label: 'Dismiss',
-              onPressed: () => setState(() => error = null),
-            ),
-          ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(error!),
+              PlatformButton(
+                platform: widget.platform,
+                label: 'Dismiss',
+                onPressed: () => setState(() => error = null),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -461,54 +464,60 @@ class _CatalogState extends State<Catalog> {
     final narrow = MediaQuery.sizeOf(context).width < 750;
     final list = Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              PlatformField(
-                platform: widget.platform,
-                label: 'Search source titles',
-                onChanged: (value) => setState(() => query = value),
-              ),
-              Wrap(
-                spacing: 8,
+        Flexible(
+          fit: FlexFit.loose,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
                 children: [
-                  PlatformButton(
+                  PlatformField(
                     platform: widget.platform,
-                    label: 'All sources',
-                    onPressed: () => setState(() => collectionId = null),
+                    label: 'Search source titles',
+                    onChanged: (value) => setState(() => query = value),
                   ),
-                  ...groups.map(
-                    (group) => PlatformButton(
-                      platform: widget.platform,
-                      label: group.name,
-                      onPressed: () => setState(() => collectionId = group.id),
-                    ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      PlatformButton(
+                        platform: widget.platform,
+                        label: 'All sources',
+                        onPressed: () => setState(() => collectionId = null),
+                      ),
+                      ...groups.map(
+                        (group) => PlatformButton(
+                          platform: widget.platform,
+                          label: group.name,
+                          onPressed: () =>
+                              setState(() => collectionId = group.id),
+                        ),
+                      ),
+                      PlatformButton(
+                        platform: widget.platform,
+                        label: 'New collection',
+                        onPressed: addCollection,
+                      ),
+                      PlatformButton(
+                        platform: widget.platform,
+                        label: 'New source',
+                        onPressed: () => editSource(),
+                      ),
+                      PlatformButton(
+                        platform: widget.platform,
+                        label: 'Import JSON',
+                        onPressed: importFile,
+                      ),
+                      for (final kind in ['json', 'md', 'bib'])
+                        PlatformButton(
+                          platform: widget.platform,
+                          label: 'Export $kind',
+                          onPressed: () => saveExport(kind),
+                        ),
+                    ],
                   ),
-                  PlatformButton(
-                    platform: widget.platform,
-                    label: 'New collection',
-                    onPressed: addCollection,
-                  ),
-                  PlatformButton(
-                    platform: widget.platform,
-                    label: 'New source',
-                    onPressed: () => editSource(),
-                  ),
-                  PlatformButton(
-                    platform: widget.platform,
-                    label: 'Import JSON',
-                    onPressed: importFile,
-                  ),
-                  for (final kind in ['json', 'md', 'bib'])
-                    PlatformButton(
-                      platform: widget.platform,
-                      label: 'Export $kind',
-                      onPressed: () => saveExport(kind),
-                    ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
         Expanded(

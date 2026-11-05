@@ -132,6 +132,7 @@ void main() {
       SourceShelfApp(platform: TargetPlatform.android, library: library),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Export md'));
     await tester.tap(find.text('Export md'));
     await tester.pumpAndSettle();
     expect(find.textContaining('private research notes'), findsOneWidget);
@@ -140,38 +141,49 @@ void main() {
     expect(find.textContaining('private research notes'), findsNothing);
   });
 
-  testWidgets('large text keeps essential actions usable with keyboard focus', (
+  testWidgets('AX large text keeps catalog and source editor scrollable', (
     tester,
   ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(
+      tester.binding.platformDispatcher.clearTextScaleFactorTestValue,
+    );
     for (final platform in [
       TargetPlatform.iOS,
       TargetPlatform.android,
       TargetPlatform.windows,
     ]) {
-      tester.view.physicalSize = const Size(390, 844);
-      tester.view.devicePixelRatio = 1;
-      tester.binding.platformDispatcher.textScaleFactorTestValue = 2;
-      await tester.pumpWidget(
-        SourceShelfApp(platform: platform, library: SourceLibrary.memory()),
-      );
-      expect(
-        MediaQuery.textScalerOf(tester.element(find.byType(Catalog))),
-        isA<TextScaler>().having((value) => value.scale(10), 'scaled 10px', 20),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('New source'), findsOneWidget);
-      expect(find.text('Import JSON'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.ensureVisible(find.text('New source'));
-      await tester.tap(find.text('New source'));
-      await tester.pumpAndSettle();
-      expect(find.text('Save source'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.pumpWidget(const SizedBox());
+      for (final size in [const Size(390, 844), const Size(900, 1100)]) {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        tester.binding.platformDispatcher.textScaleFactorTestValue = 3.3;
+        final library = SourceLibrary.memory();
+        await tester.pumpWidget(
+          SourceShelfApp(platform: platform, library: library),
+        );
+        expect(
+          MediaQuery.textScalerOf(tester.element(find.byType(Catalog))),
+          isA<TextScaler>().having(
+            (value) => value.scale(10),
+            'scaled 10px',
+            33,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('New source'), findsOneWidget);
+        expect(find.text('Import JSON'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await tester.ensureVisible(find.text('New source'));
+        await tester.tap(find.text('New source'));
+        await tester.pumpAndSettle();
+        expect(find.text('Save source'), findsOneWidget);
+        await tester.ensureVisible(find.text('Save source'));
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        library.dispose();
+      }
     }
-    tester.view.resetPhysicalSize();
-    tester.view.resetDevicePixelRatio();
-    tester.binding.platformDispatcher.clearTextScaleFactorTestValue();
   });
 
   testWidgets('keyboard search and tab focus on each platform', (tester) async {
