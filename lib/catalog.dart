@@ -141,7 +141,17 @@ class _CatalogState extends State<Catalog> {
             if (validation != null)
               Text(
                 validation!,
-                style: const TextStyle(color: Color(0xffa32424)),
+                style: TextStyle(
+                  color:
+                      (widget.platform == TargetPlatform.iOS
+                              ? cupertino.CupertinoTheme.of(context).brightness
+                              : widget.platform == TargetPlatform.windows
+                              ? fluent.FluentTheme.of(context).brightness
+                              : material.Theme.of(context).brightness) ==
+                          Brightness.dark
+                      ? const Color(0xffff8080)
+                      : const Color(0xffa32424),
+                ),
               ),
             Wrap(
               alignment: WrapAlignment.end,
@@ -244,7 +254,17 @@ class _CatalogState extends State<Catalog> {
             if (validation != null)
               Text(
                 validation!,
-                style: const TextStyle(color: Color(0xffa32424)),
+                style: TextStyle(
+                  color:
+                      (widget.platform == TargetPlatform.iOS
+                              ? cupertino.CupertinoTheme.of(context).brightness
+                              : widget.platform == TargetPlatform.windows
+                              ? fluent.FluentTheme.of(context).brightness
+                              : material.Theme.of(context).brightness) ==
+                          Brightness.dark
+                      ? const Color(0xffff8080)
+                      : const Color(0xffa32424),
+                ),
               ),
             Wrap(
               alignment: WrapAlignment.end,
@@ -306,7 +326,17 @@ class _CatalogState extends State<Catalog> {
             if (validation != null)
               Text(
                 validation!,
-                style: const TextStyle(color: Color(0xffa32424)),
+                style: TextStyle(
+                  color:
+                      (widget.platform == TargetPlatform.iOS
+                              ? cupertino.CupertinoTheme.of(context).brightness
+                              : widget.platform == TargetPlatform.windows
+                              ? fluent.FluentTheme.of(context).brightness
+                              : material.Theme.of(context).brightness) ==
+                          Brightness.dark
+                      ? const Color(0xffff8080)
+                      : const Color(0xffa32424),
+                ),
               ),
             PlatformButton(
               platform: widget.platform,
