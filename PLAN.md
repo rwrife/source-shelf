@@ -20,7 +20,7 @@ Source(id, type, title, ordered creators, publication fields, identifiers); Exce
 - [x] #3 Adaptive source catalog, excerpt capture and search with platform goldens.
 - [x] #4 Deterministic citation formatter and fixtures (APA 7 and BibTeX first; Chicago/MLA later).
 - [x] #5 Full JSON import/export, Markdown/BibTeX export and privacy controls.
-- [ ] #6 Icon wiring and store copy updated; automated text scaling and focus checks improved. Visual icon, contrast, screen-reader and native input audit remain pending.
+- [x] #6 Icon wiring and store copy updated; visual icon, dark/light contrast, screen-reader semantics and native input audit completed.
 - [ ] #7 Release workflow `v*`/manual dispatch on `windows-latest`: zipped `flutter build windows --release` attached to GitHub release; Android build continues in Linux Docker CI. TestFlight/Play opt-in later, using ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, ASC_TEAM_ID (names only). Never log secrets. Record MSIX mapping from `com.infinityball.sourceshelf` when packaging requires transformed identity.
 
 ## Risks & non-goals

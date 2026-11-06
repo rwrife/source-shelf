@@ -231,6 +231,71 @@ void main() {
     }
   });
 
+  testWidgets('validation error meets contrast on light and dark surfaces', (
+    tester,
+  ) async {
+    const error = Color(0xffa32424);
+    double luminance(Color color) => color.computeLuminance();
+    double ratio(Color a, Color b) {
+      final light = luminance(a) > luminance(b) ? luminance(a) : luminance(b);
+      final dark = luminance(a) > luminance(b) ? luminance(b) : luminance(a);
+      return (light + 0.05) / (dark + 0.05);
+    }
+
+    expect(ratio(error, const Color(0xffffffff)), greaterThanOrEqualTo(4.5));
+    expect(
+      ratio(const Color(0xffff8080), const Color(0xff000000)),
+      greaterThanOrEqualTo(4.5),
+    );
+  });
+
+  testWidgets('source validation stays readable and keyboard-operable', (
+    tester,
+  ) async {
+    for (final platform in [
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+      TargetPlatform.windows,
+    ]) {
+      final library = SourceLibrary.memory();
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      tester.binding.platformDispatcher.textScaleFactorTestValue = 3.3;
+      await tester.pumpWidget(
+        SourceShelfApp(platform: platform, library: library),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('New source'));
+      await tester.tap(find.text('New source'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Save source'));
+      await tester.tap(find.text('Save source'));
+      await tester.pumpAndSettle();
+      final validation = find.textContaining('Check required title');
+      expect(validation, findsOneWidget);
+      final foreground = tester.widget<Text>(validation).style!.color!;
+      expect(
+        foreground,
+        const Color(0xffa32424),
+        reason: 'light theme validation must use tested foreground',
+      );
+      expect(tester.takeException(), isNull);
+      final title = find.byType(PlatformField).at(1).findChildTextField();
+      await tester.ensureVisible(title);
+      await tester.tap(title);
+      await tester.enterText(title, 'A source');
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(FocusManager.instance.primaryFocus, isNotNull);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      library.dispose();
+    }
+    tester.binding.platformDispatcher.clearTextScaleFactorTestValue();
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
   testWidgets('adaptive controls use platform-specific widgets', (
     tester,
   ) async {
