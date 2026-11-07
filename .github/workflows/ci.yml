@@ -50,3 +50,16 @@ jobs:
       - run: flutter pub get --enforce-lockfile
       - run: flutter test
       - run: flutter build windows --debug
+
+  ios-compile:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter build ios --simulator --no-codesign
+      - run: git diff --exit-code
