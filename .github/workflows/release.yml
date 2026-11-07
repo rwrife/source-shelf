@@ -1,0 +1,82 @@
+name: Windows portable release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing v* tag to package
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: source-shelf-release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  windows-portable:
+    runs-on: windows-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Validate existing version tag
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -cnotmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw "Expected version tag vMAJOR.MINOR.PATCH" }
+          gh api "repos/$env:GH_REPO/git/ref/tags/$env:RELEASE_TAG" --jq '.ref'
+          if ($LASTEXITCODE -ne 0) { throw "Tag not found" }
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - name: Verify checkout tag
+        shell: pwsh
+        run: |
+          $expected = git rev-list -n 1 "refs/tags/$env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0 -or (git rev-parse HEAD) -ne $expected) { throw "Checkout differs from release tag" }
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Test and build Windows release
+        shell: pwsh
+        run: |
+          flutter config --enable-windows-desktop
+          if ($LASTEXITCODE -ne 0) { throw "Flutter desktop setup failed" }
+          flutter pub get --enforce-lockfile
+          if ($LASTEXITCODE -ne 0) { throw "Locked dependency resolution failed" }
+          git diff --exit-code
+          if ($LASTEXITCODE -ne 0) { throw "Dependency resolution changed tracked files" }
+          flutter test
+          if ($LASTEXITCODE -ne 0) { throw "Flutter tests failed" }
+          flutter build windows --release
+          if ($LASTEXITCODE -ne 0) { throw "Windows release build failed" }
+      - name: Package and publish portable zip
+        shell: pwsh
+        run: |
+          $release = 'build/windows/x64/runner/Release'
+          if (!(Test-Path "$release/source_shelf.exe") -or !(Test-Path "$release/data/flutter_assets")) { throw "Release executable or assets missing" }
+          $archive = Join-Path $env:RUNNER_TEMP "source-shelf-$env:RELEASE_TAG-windows-x64.zip"
+          Compress-Archive -Path "$release/*" -DestinationPath $archive -CompressionLevel Optimal
+          Add-Type -AssemblyName System.IO.Compression
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($archive)
+          try {
+            $entries = @($zip.Entries | ForEach-Object FullName)
+            if ('source_shelf.exe' -notin $entries -or !($entries | Where-Object { $_ -like 'data/flutter_assets/*' })) { throw "Portable archive incomplete" }
+          } finally { $zip.Dispose() }
+          gh release view $env:RELEASE_TAG --json tagName *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:RELEASE_TAG $archive --clobber
+          } else {
+            gh release create $env:RELEASE_TAG $archive --verify-tag --title "Source Shelf $env:RELEASE_TAG" --notes 'Portable Windows x64 build. Extract entire zip before running source_shelf.exe. Data stays local.'
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Release publish failed" }
+          $assets = gh release view $env:RELEASE_TAG --json assets | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or !($assets.assets | Where-Object { $_.name -eq (Split-Path $archive -Leaf) -and $_.size -gt 0 })) { throw "Published release asset missing or empty" }
